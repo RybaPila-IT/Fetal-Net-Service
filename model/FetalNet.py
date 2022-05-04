@@ -187,21 +187,21 @@ def double_conv(input_channels, output_channels):
     return conv
 
 
-class Attention_block(nn.Module):
-    def __init__(self, F_g, F_l, F_int):
-        super(Attention_block, self).__init__()
+class AttentionBlock(nn.Module):
+    def __init__(self, f_g, f_l, f_int):
+        super(AttentionBlock, self).__init__()
         self.W_g = nn.Sequential(
-            nn.Conv2d(F_g, F_int, kernel_size=1, stride=1, padding=0, bias=True),
-            nn.BatchNorm2d(F_int)
+            nn.Conv2d(f_g, f_int, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(f_int)
         )
 
         self.W_x = nn.Sequential(
-            nn.Conv2d(F_l, F_int, kernel_size=1, stride=1, padding=0, bias=True),
-            nn.BatchNorm2d(F_int)
+            nn.Conv2d(f_l, f_int, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(f_int)
         )
 
         self.psi = nn.Sequential(
-            nn.Conv2d(F_int, 1, kernel_size=1, stride=1, padding=0, bias=True),
+            nn.Conv2d(f_int, 1, kernel_size=1, stride=1, padding=0, bias=True),
             nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
@@ -251,19 +251,19 @@ class YNet(nn.Module):
         self.bootleneck = double_conv(8 * output_channels, 16 * output_channels)
 
         self.up_transpose4 = nn.ConvTranspose2d(16 * output_channels, 8 * output_channels, kernel_size=2, stride=2)
-        self.Att4 = Attention_block(F_g=8 * output_channels, F_l=8 * output_channels, F_int=4 * output_channels)
+        self.Att4 = AttentionBlock(f_g=8 * output_channels, f_l=8 * output_channels, f_int=4 * output_channels)
         self.up_conv4 = double_conv(16 * output_channels, 8 * output_channels)
 
         self.up_transpose3 = nn.ConvTranspose2d(8 * output_channels, 4 * output_channels, kernel_size=2, stride=2)
-        self.Att3 = Attention_block(F_g=4 * output_channels, F_l=4 * output_channels, F_int=2 * output_channels)
+        self.Att3 = AttentionBlock(f_g=4 * output_channels, f_l=4 * output_channels, f_int=2 * output_channels)
         self.up_conv3 = double_conv(8 * output_channels, 4 * output_channels)
 
         self.up_transpose2 = nn.ConvTranspose2d(4 * output_channels, 2 * output_channels, kernel_size=2, stride=2)
-        self.Att2 = Attention_block(F_g=2 * output_channels, F_l=2 * output_channels, F_int=1 * output_channels)
+        self.Att2 = AttentionBlock(f_g=2 * output_channels, f_l=2 * output_channels, f_int=1 * output_channels)
         self.up_conv2 = double_conv(4 * output_channels, 2 * output_channels)
 
         self.up_transpose1 = nn.ConvTranspose2d(2 * output_channels, output_channels, kernel_size=2, stride=2)
-        self.Att1 = Attention_block(F_g=1 * output_channels, F_l=1 * output_channels, F_int=output_channels // 2)
+        self.Att1 = AttentionBlock(f_g=1 * output_channels, f_l=1 * output_channels, f_int=output_channels // 2)
         self.up_conv1 = double_conv(2 * output_channels, output_channels)
         self.out_layer = nn.Conv2d(4, out_channels=n_class, kernel_size=3, padding=1)
         self.conv_lstm = ConvLSTM(input_size=(14, 14),
