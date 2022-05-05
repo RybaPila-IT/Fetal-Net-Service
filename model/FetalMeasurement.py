@@ -53,4 +53,4 @@ class FetalMeasurement:
 
 if __name__ == "__main__":
     fetal_measurement = FetalMeasurement(model_path='trained/weights.pt')
-    fetal_measurement.get_prediction(image_name='../0427_femur_43.png')
+    fetal_measurement.get_prediction(image_name='../data/samples/0427_abdomen_80.png')
