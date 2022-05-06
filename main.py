@@ -1,9 +1,10 @@
 import base64
 import io
 
-from PIL import Image
-from fastapi import FastAPI
+from PIL import Image, UnidentifiedImageError
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from binascii import Error
 
 from model.FetalMeasurement import FetalMeasurement
 
@@ -17,7 +18,6 @@ fetal_measurement = FetalMeasurement(
 )
 
 # TODO (radek.r) Add authorization
-# TODO (radek.r) Add image receiving
 # TODO (radek.r) Add exceptions handling
 
 
@@ -36,16 +36,30 @@ async def predict(image_data: ImageData) -> dict:
 
 
 def __decode_image(image_data: ImageData) -> Image:
-    img_pixels = base64.b64decode(image_data.pixels)
-    buffer = io.BytesIO(img_pixels)
-    return Image.open(buffer)
+    try:
+        return Image.open(
+            io.BytesIO(
+                base64.b64decode(image_data.pixels)
+            )
+        )
+    except Error:
+        raise HTTPException(status_code=400, detail='Submitted file is corrupted')
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=400, detail='File is not a valid image')
 
 
 def __predict(image: Image) -> tuple[str, Image]:
-    return fetal_measurement.get_prediction(image)
+    try:
+        return fetal_measurement.get_prediction(image)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail='Error while performing the prediction')
 
 
 def __encode_image(image: Image) -> bytes:
-    buffered = io.BytesIO()
-    image.save(buffered, format='PNG')
-    return base64.b64encode(buffered.getvalue())
+    try:
+        buffered = io.BytesIO()
+        image.save(buffered, format='PNG')
+        return base64.b64encode(buffered.getvalue())
+    except OSError:
+        raise HTTPException(status_code=500, detail='Error while saving file into BytesIO')
