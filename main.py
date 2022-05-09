@@ -22,8 +22,6 @@ fetal_measurement = FetalMeasurement(
     model_path='model/trained/weights.pt'
 )
 
-# TODO (rade.r) Add tests
-
 
 security = HTTPBearer()
 app = FastAPI()

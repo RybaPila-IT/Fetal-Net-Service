@@ -1,4 +1,3 @@
-"""Prediction and automatic measurement of fetal body parts"""
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
@@ -7,8 +6,6 @@ from model.fetal_net import YNet
 
 
 class FetalMeasurement:
-    """FetalMeasurement class."""
-
     def __init__(self, model_path: str,
                  end_img_size: tuple[int, int] = (512, 512),
                  mask_blend_strength: float = 0.24):
@@ -36,7 +33,7 @@ class FetalMeasurement:
         Function performs the prediction on provided image by using the Fetal-Net
         neural network.
 
-        :param input_img: PIL image on which prediction will be made
+        :param: input_img: PIL image on which prediction will be made
         :return: classified body part, result image in PIL format
         """
         cls, mask = self.__make_prediction(input_img)
@@ -65,9 +62,10 @@ class FetalMeasurement:
             return 'femur'
         return 'unclassified'
 
-    def __prepare_mask(self, mask: torch.tensor) -> Image:
+    @staticmethod
+    def __prepare_mask(mask: torch.tensor) -> Image:
         data = mask.round().squeeze(0).cpu().data
-        mask_img = transforms.ToPILImage()(data).resize(self.end_img_size).convert('RGB')
+        mask_img = transforms.ToPILImage()(data).convert('RGB')
         r, g, b = mask_img.split()
         # Changing channels in order to make mask color stand out.
         # Now it will be green.
@@ -78,5 +76,8 @@ class FetalMeasurement:
         return Image.merge('RGB', (r, g, b))
 
     def __obtain_final_image(self, input_image: Image, mask_image: Image) -> Image:
-        input_image = input_image.convert('RGB').resize(self.end_img_size)
-        return Image.blend(input_image, mask_image, self.mask_blend_strength)
+        return Image.blend(
+            input_image.convert('RGB').resize(self.end_img_size),
+            mask_image.convert('RGB').resize(self.end_img_size),
+            self.mask_blend_strength
+        )
