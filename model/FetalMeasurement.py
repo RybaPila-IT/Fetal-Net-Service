@@ -45,10 +45,12 @@ class FetalMeasurement:
         return body_part, result_img
 
     def __make_prediction(self, image: Image) -> tuple[torch.tensor, torch.tensor]:
-        # Convert image to greyscale and then reshape it into tensor meaning
+        # Convert image into greyscale and then reshape it into tensor meaning
         # batch size, number of frames, channels, frame size.
-        x = self.transforms(image.convert('L')).reshape([1, 1, 1, 224, 224])
-        return self.model.forward(x)
+        # Eventually feed the FetalNet with that tensor.
+        return self.model.forward(
+            self.transforms(image.convert('L')).reshape([1, 1, 1, 224, 224])
+        )
 
     @staticmethod
     def __classify_body_part(cls: torch.tensor) -> str:
