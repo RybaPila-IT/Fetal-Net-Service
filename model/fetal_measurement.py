@@ -2,7 +2,8 @@
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-from model.FetalNet import YNet
+
+from model.fetal_net import YNet
 
 
 class FetalMeasurement:

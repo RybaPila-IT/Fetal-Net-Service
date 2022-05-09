@@ -9,7 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from binascii import Error
 
-from model.FetalMeasurement import FetalMeasurement
+from model.fetal_measurement import FetalMeasurement
 
 
 class ImageData(BaseModel):
