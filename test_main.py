@@ -13,7 +13,7 @@ os.environ['ACCESS_TOKEN'] = 'access_token'
 def test_unauthorized_request():
     response = client.post(
         url='/predict',
-        json={'pixels': 'Random pixels'}
+        json={'pixel_data': 'Random pixels'}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -23,7 +23,7 @@ def test_invalid_access_token_request():
     response = client.post(
         url='/predict',
         headers={'Authorization': 'Bearer invalid_token'},
-        json={'pixels': 'Random pixels'}
+        json={'pixel_data': 'Random pixels'}
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -33,7 +33,7 @@ def test_invalid_encoded_pixels_request():
     response = client.post(
         url='/predict',
         headers={'Authorization': 'Bearer access_token'},
-        json={'pixels': 'Random pixels'}
+        json={'pixel_data': 'Random pixels'}
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -43,7 +43,7 @@ def test_invalid_image_request():
     response = client.post(
         url='/predict',
         headers={'Authorization': 'Bearer access_token'},
-        json={'pixels': 'aGVsbG8gd29ybGQh'}
+        json={'pixel_data': 'aGVsbG8gd29ybGQh'}
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -55,7 +55,7 @@ def test_valid_request():
     response = client.post(
         url='/predict',
         headers={'Authorization': 'Bearer access_token'},
-        json={'pixels': encoded_pixels}
+        json={'pixel_data': encoded_pixels}
     )
     res_body = json.loads(response.content.decode())
 

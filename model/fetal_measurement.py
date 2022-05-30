@@ -4,6 +4,9 @@ from PIL import Image
 
 from model.fetal_net import YNet
 
+# Type representing the prediction obtained from the measurer.
+Prediction = tuple[str, Image]
+
 
 class FetalMeasurement:
     def __init__(self, model_path: str,
@@ -26,7 +29,7 @@ class FetalMeasurement:
         self.end_img_size = end_img_size
         self.mask_blend_strength = mask_blend_strength
 
-    def get_prediction(self, input_img: Image) -> tuple[str, Image]:
+    def get_prediction(self, input_img: Image) -> Prediction:
         """
         Obtain a prediction result.
 

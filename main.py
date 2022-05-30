@@ -9,66 +9,68 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from binascii import Error
 
-from model.fetal_measurement import FetalMeasurement
+from model.fetal_measurement import FetalMeasurement, Prediction
 
 
-class ImageData(BaseModel):
-    pixels: str
+class Request(BaseModel):
+    pixel_data: str
 
 
+MODEL_PATH = 'model/trained/weights.pt'
+ACCESS_TOKEN_ENV_KEY = 'ACCESS_TOKEN'
+
+# Preparing the environment of the service.
 load_dotenv()
-
-fetal_measurement = FetalMeasurement(
-    model_path='model/trained/weights.pt'
-)
-
 
 security = HTTPBearer()
 app = FastAPI()
+measurer = FetalMeasurement(MODEL_PATH)
 
 
 @app.post('/predict')
-async def predict(image_data: ImageData,
+async def predict(req: Request,
                   credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
-    __validate_token(credentials.credentials)
-    image = __decode_image(image_data)
+    if not __valid_credentials(credentials.credentials):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, 'Invalid access token')
+    # Start of the prediction pipeline.
+    image = __decode_image(req)
     body_part, result_img = __predict(image)
     result_img_bytes = __encode_image(result_img)
+    # TODO (radek.r) Add also body part size prediction to response.
     return {
         'body_part': body_part,
         'image_bytes': result_img_bytes
     }
 
 
-def __validate_token(token):
-    if token != os.getenv('ACCESS_TOKEN'):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail='Invalid access token')
+def __valid_credentials(credentials: str) -> bool:
+    return credentials == os.getenv(ACCESS_TOKEN_ENV_KEY)
 
 
-def __decode_image(image_data: ImageData) -> Image:
+def __decode_image(req: Request) -> Image:
     try:
         return Image.open(
             io.BytesIO(
-                base64.b64decode(image_data.pixels)
+                base64.b64decode(req.pixel_data)
             )
         )
     except Error:
-        raise HTTPException(status_code=400, detail='Submitted file is corrupted')
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Submitted file is corrupted')
     except UnidentifiedImageError:
-        raise HTTPException(status_code=400, detail='File is not a valid image')
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'File is not a valid image')
 
 
-def __predict(image: Image) -> tuple[str, Image]:
+def __predict(image: Image) -> Prediction:
     try:
-        return fetal_measurement.get_prediction(image)
+        return measurer.get_prediction(image)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error while performing the prediction: {e}')
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f'Error while performing the prediction: {e}')
 
 
 def __encode_image(image: Image) -> bytes:
     try:
         buffered = io.BytesIO()
-        image.save(buffered, format='PNG')
+        image.save(buffered, 'PNG')
         return base64.b64encode(buffered.getvalue())
-    except OSError:
-        raise HTTPException(status_code=500, detail='Error while saving file into BytesIO')
+    except OSError as e:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f'Error while saving file into BytesIO: {e}')
