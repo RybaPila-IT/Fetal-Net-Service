@@ -50,7 +50,7 @@ def test_invalid_image_request():
 
 
 def test_valid_request():
-    with open('data/samples/encoded/0427_head_203.txt') as f:
+    with open('test/data/samples/encoded/0427_head_203.txt') as f:
         encoded_pixels = f.read()
     response = client.post(
         url='/predict',
