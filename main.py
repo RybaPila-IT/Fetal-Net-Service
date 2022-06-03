@@ -13,7 +13,7 @@ from model.fetal_measurement import FetalMeasurement, Prediction
 
 
 class Request(BaseModel):
-    pixel_data: str
+    data: str
 
 
 MODEL_PATH = 'model/trained/weights.pt'
@@ -51,7 +51,7 @@ def __decode_image(req: Request) -> Image:
     try:
         return Image.open(
             io.BytesIO(
-                base64.b64decode(req.pixel_data)
+                base64.b64decode(req.data)
             )
         )
     except Error:
