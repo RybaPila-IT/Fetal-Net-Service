@@ -38,8 +38,10 @@ async def predict(req: Request,
     result_img_bytes = __encode_image(result_img)
     # TODO (radek.r) Add also body part size prediction to response.
     return {
-        'body_part': body_part,
-        'image_bytes': result_img_bytes
+        'prediction': {
+            'body_part': body_part
+        },
+        'photo': result_img_bytes
     }
 
 
