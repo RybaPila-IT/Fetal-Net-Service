@@ -27,6 +27,13 @@ app = FastAPI()
 measurer = FetalMeasurement(MODEL_PATH)
 
 
+@app.get('/')
+async def main() -> dict:
+    return {
+        'message': 'Welcome to Fetal-Net Service'
+    }
+
+
 @app.post('/predict')
 async def predict(req: Request,
                   credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
