@@ -28,15 +28,15 @@ measurer = FetalMeasurement(MODEL_PATH)
 
 
 @app.get('/')
-async def main() -> dict:
+def main() -> dict:
     return {
         'message': 'Welcome to Fetal-Net Service'
     }
 
 
 @app.post('/predict')
-async def predict(req: Request,
-                  credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
+def predict(req: Request,
+            credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
     if not __valid_credentials(credentials.credentials):
         raise HTTPException(status.HTTP_403_FORBIDDEN, 'Invalid access token')
     # Start of the prediction pipeline.
