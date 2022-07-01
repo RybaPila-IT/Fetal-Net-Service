@@ -15,7 +15,12 @@ os.environ[ACCESS_TOKEN_ENV_KEY] = access_token
 def test_unauthorized_request():
     resp = client.post(
         url=predict_url,
-        json={'data': 'Random pixels'}
+        json={
+            'photo': 'Random pixels',
+            'attributes': {
+                'attribute_1': 'value'
+            }
+        }
     )
 
     assert resp.status_code == status.HTTP_403_FORBIDDEN
@@ -25,7 +30,12 @@ def test_invalid_access_token_request():
     resp = client.post(
         url=predict_url,
         headers={'Authorization': 'Bearer invalid_token'},
-        json={'data': 'Random pixels'}
+        json={
+            'photo': 'Random pixels',
+            'attributes': {
+                'attribute_1': 'value'
+            }
+        }
     )
 
     assert resp.status_code == status.HTTP_403_FORBIDDEN
@@ -35,7 +45,12 @@ def test_invalid_encoded_pixels_request():
     resp = client.post(
         url=predict_url,
         headers={'Authorization': f'Bearer {access_token}'},
-        json={'data': 'Random pixels'}
+        json={
+            'photo': 'Random pixels',
+            'attributes': {
+                'attribute_1': 'value'
+            }
+        }
     )
 
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -45,7 +60,12 @@ def test_invalid_image_request():
     resp = client.post(
         url=predict_url,
         headers={'Authorization': f'Bearer {access_token}'},
-        json={'data': 'aGVsbG8gd29ybGQh'}
+        json={
+            'photo': 'aGVsbG8gd29ybGQh',
+            'attributes': {
+                'attribute_1': 'value'
+            }
+        }
     )
 
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -58,7 +78,12 @@ def test_valid_request():
     resp = client.post(
         url=predict_url,
         headers={'Authorization': f'Bearer {access_token}'},
-        json={'data': encoded_pixels}
+        json={
+            'photo': encoded_pixels,
+            'attributes': {
+                'attribute_1': 'value'
+            }
+        }
     )
     resp_body = json.loads(resp.content.decode())
 

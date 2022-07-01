@@ -13,7 +13,13 @@ from model.fetal_measurement import FetalMeasurement, Prediction
 
 
 class Request(BaseModel):
-    data: str
+    photo: str
+    attributes: dict
+
+
+class Response(BaseModel):
+    photo: str
+    prediction: dict
 
 
 MODEL_PATH = 'model/trained/weights.pt'
@@ -35,8 +41,7 @@ def main() -> dict:
 
 
 @app.post('/predict')
-def predict(req: Request,
-            credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:
+def predict(req: Request, credentials: HTTPAuthorizationCredentials = Security(security)):
     if not __valid_credentials(credentials.credentials):
         raise HTTPException(status.HTTP_403_FORBIDDEN, 'Invalid access token')
     # Start of the prediction pipeline.
@@ -44,12 +49,12 @@ def predict(req: Request,
     body_part, result_img = __predict(image)
     result_img_bytes = __encode_image(result_img)
     # TODO (radek.r) Add also body part size prediction to response.
-    return {
-        'prediction': {
+    return Response(
+        photo=result_img_bytes,
+        prediction={
             'body_part': body_part
-        },
-        'photo': result_img_bytes
-    }
+        }
+    )
 
 
 def __valid_credentials(credentials: str) -> bool:
@@ -60,7 +65,7 @@ def __decode_image(req: Request) -> Image:
     try:
         return Image.open(
             io.BytesIO(
-                base64.b64decode(req.data)
+                base64.b64decode(req.photo)
             )
         )
     except Error:
