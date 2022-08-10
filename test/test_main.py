@@ -5,11 +5,20 @@ from fastapi.testclient import TestClient
 from fastapi import status
 from main import app, ACCESS_TOKEN_ENV_KEY
 
+main_url = '/'
 predict_url = '/predict'
 access_token = 'access_token'
 client = TestClient(app)
 
 os.environ[ACCESS_TOKEN_ENV_KEY] = access_token
+
+
+def test_main_request():
+    resp = client.get(url=main_url)
+    resp_body = json.loads(resp.content.decode())
+
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp_body['message'] is not None
 
 
 def test_unauthorized_request():
@@ -56,14 +65,29 @@ def test_invalid_encoded_pixels_request():
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_invalid_image_request():
+def test_invalid_image_request_missing_image_size():
     resp = client.post(
         url=predict_url,
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'photo': 'aGVsbG8gd29ybGQh',
             'attributes': {
-                'attribute_1': 'value'
+                'pixel_spacing': 0.254439
+            }
+        }
+    )
+
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_invalid_image_request_missing_pixel_spacing():
+    resp = client.post(
+        url=predict_url,
+        headers={'Authorization': f'Bearer {access_token}'},
+        json={
+            'photo': 'aGVsbG8gd29ybGQh',
+            'attributes': {
+                'image_size': [975, 743]
             }
         }
     )
@@ -81,7 +105,8 @@ def test_valid_request():
         json={
             'photo': encoded_pixels,
             'attributes': {
-                'attribute_1': 'value'
+                'image_size': [975, 743],
+                'pixel_spacing': 0.254439
             }
         }
     )

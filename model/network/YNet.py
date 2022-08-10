@@ -228,7 +228,7 @@ class YNet(nn.Module):
     UNet class.
     """
 
-    def __init__(self, input_channels, output_channels, n_class):
+    def __init__(self, input_channels=1, output_channels=64, n_class=1):
         """
         Args:
             input_channels:
